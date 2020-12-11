@@ -13,6 +13,30 @@ const config = {
     measurementId: "G-BH83YWPFRM"
 };
 
+// Create user profile document to firebase database based on response of the googleauth.
+export const createUserProfileDocument = async (userAuth, additionalData) => {
+    // If there is no user authentication response, just return.
+    if (!userAuth) return;
+
+    const userRef = firestore.doc(`users/${userAuth.uid}`);
+    const snapShot = await userRef.get();
+    if (!snapShot.exists) {
+        const {displayName, email} = userAuth;
+        const createdAt = new Date();
+
+        try {
+            await userRef.set({
+                displayName,
+                email,
+                createdAt,
+                ...additionalData
+            })
+        }catch(error) {
+            console.log('error creating user', error.message);
+        }
+    }
+    return userRef;
+}
 firebase.initializeApp(config);
 
 export const auth = firebase.auth();
